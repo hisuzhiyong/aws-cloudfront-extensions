@@ -48,12 +48,31 @@ exports.handler = (event, context, callback) => {
       Key: originalKey,
     })
       .promise()
-      .then((data) =>
-        Sharp(data.Body)
+      .then((data) => {
+        if (imageFormat == "png") {
+              Sharp(data.Body)
+              .resize(width, height, {
+                fit: FIT_TYPE,
+              })
+              // To avoid image become larger, add png configs
+              // docs: https://sharp.pixelplumbing.com/api-output#png
+              .png({
+                    palette: true,
+                    // compressionLevel: 9,
+                    quality: 80,
+                    colors: 256,
+                })
+              .toBuffer()
+            }
+        } else {
+          Sharp(data.Body)
           .resize(width, height, {
             fit: FIT_TYPE,
           })
           .toBuffer()
+        }
+        }
+        
       )
       .then((buffer) => {
         // save the resized object to S3 bucket
